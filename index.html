@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel Strategy: Interactive Tutorial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .active-row { border-left: 4px solid #60a5fa !important; background-color: rgba(30, 41, 59, 1) !important; position: relative; }
+        .dimmed { opacity: 0.2; filter: grayscale(1); pointer-events: none; }
+        .ledger-input { background: #1e293b; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; font-family: monospace; width: 100px; color: white;}
+
+        /* Tooltip Styling */
+        .tutorial-popup {
+            position: absolute;
+            left: -280px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 250px;
+            background: #3b82f6;
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+            z-index: 50;
+            display: none;
+        }
+        .tutorial-popup::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: -10px;
+            transform: translateY(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent transparent #3b82f6;
+        }
+        .active-row .tutorial-popup { display: block; animation: fadeIn 0.3s ease-out; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-50%) translateX(10px); } to { opacity: 1; transform: translateY(-50%) translateX(0); } }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-8 font-sans flex flex-col items-center">
+
+    <div class="max-w-4xl w-full">
+        <header class="flex justify-between items-center mb-12 border-b border-slate-800 pb-6">
+            <div>
+                <h1 class="text-3xl font-black text-white uppercase tracking-tighter italic">Wheel <span class="text-blue-500">Coach</span></h1>
+                <p class="text-slate-500 text-sm">Step-by-step logic for the options wheel.</p>
+            </div>
+            <button onclick="nextPhase()" id="phase-btn" class="bg-blue-600 hover:bg-blue-500 px-8 py-3 rounded-xl font-black transition shadow-lg shadow-blue-900/40 uppercase text-xs tracking-widest">
+                ➜ Next Step
+            </button>
+        </header>
+
+        <div class="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-visible shadow-2xl mb-8">
+            <table class="w-full text-left">
+                <thead class="bg-slate-900 text-slate-500 text-[10px] uppercase font-bold tracking-widest">
+                    <tr>
+                        <th class="p-6">Phase</th>
+                        <th class="p-6">Action</th>
+                        <th class="p-6">Price Entry</th>
+                        <th class="p-6">Premium</th>
+                        <th class="p-6 text-right">Cash Flow</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="row-1" class="border-b border-slate-800 active-row">
+                        <td class="p-6 font-black text-xl text-slate-700">01
+                            <div class="tutorial-popup font-sans font-normal italic">
+                                <b>The Setup:</b> You're selling a Put. You are telling the market "I will buy this stock at $Strike if it falls." They pay you a "Premium" just for making that promise.
+                            </div>
+                        </td>
+                        <td class="p-6 font-bold text-blue-400">Sell Put</td>
+                        <td class="p-6">
+                            <input type="number" id="p_strike" value="267.50" class="ledger-input font-bold" oninput="syncAndCalc()">
+                        </td>
+                        <td class="p-6">
+                            <input type="number" id="p_prem" value="1.64" step="0.01" class="ledger-input text-green-400 font-bold" oninput="syncAndCalc()">
+                        </td>
+                        <td id="p_impact" class="p-6 text-right font-mono text-green-400 font-black">+$164.00</td>
+                    </tr>
+
+                    <tr id="row-2" class="border-b border-slate-800 dimmed">
+                        <td class="p-6 font-black text-xl text-slate-700">02
+                            <div class="tutorial-popup font-sans font-normal italic">
+                                <b>The Trap:</b> The stock fell! You now own 100 shares. Your <b>Effective Basis</b> is the Strike minus the Premium you already kept. You aren't "losing" money, you're just holding an asset.
+                            </div>
+                        </td>
+                        <td class="p-6 font-bold text-orange-400 uppercase text-xs">Assigned</td>
+                        <td class="p-6 text-xs text-slate-400">Basis:<br><span id="eff_basis" class="text-white font-bold text-sm">$265.86</span></td>
+                        <td class="p-6"></td>
+                        <td class="p-6 text-right text-[10px] text-slate-500 font-black uppercase tracking-widest">Asset Acquired</td>
+                    </tr>
+
+                    <tr id="row-3" class="border-b border-slate-800 dimmed">
+                        <td class="p-6 font-black text-xl text-slate-700">03
+                            <div class="tutorial-popup font-sans font-normal italic">
+                                <b>Extraction:</b> Now you sell a "Covered Call." You are charging "rent" to hold the stock. By defaulting to your Basis, you ensure that if the stock is sold, you don't lose a cent of your original capital.
+                            </div>
+                        </td>
+                        <td class="p-6 font-bold text-purple-400 uppercase text-xs tracking-tighter">Sell Call</td>
+                        <td class="p-6">
+                            <input type="number" id="c_strike" value="265.86" class="ledger-input font-bold" oninput="calc()">
+                        </td>
+                        <td class="p-6">
+                            <input type="number" id="c_prem" value="0.50" step="0.01" class="ledger-input text-green-400 font-bold" oninput="calc()">
+                        </td>
+                        <td id="c_impact" class="p-6 text-right font-mono text-green-400 font-black">+$50.00</td>
+                    </tr>
+
+                    <tr id="row-4" class="border-b border-slate-800 dimmed">
+                        <td class="p-6 font-black text-xl text-slate-700">04
+                            <div class="tutorial-popup font-sans font-normal italic">
+                                <b>The Exit:</b> The stock was "Called Away." You sold it at your Call Strike. Because the Call Strike was lower than your original Put Strike, it shows as a "Loss" on the stock flip—but the premiums cover it.
+                            </div>
+                        </td>
+                        <td class="p-6 font-bold text-emerald-400 uppercase text-xs">Called Away</td>
+                        <td class="p-6 text-xs text-slate-400">Flip Result:<br><span id="cap_gain_val" class="font-bold">-$164.00</span></td>
+                        <td class="p-6"></td>
+                        <td id="exit_impact" class="p-6 text-right font-mono font-black text-red-400">-$164.00</td>
+                    </tr>
+
+                    <tr id="row-5" class="dimmed">
+                        <td class="p-6 font-black text-xl text-slate-700">05
+                            <div class="tutorial-popup font-sans font-normal italic">
+                                <b>The Result:</b> You finished the wheel! This number is your <b>Total Net Gain</b>. It is the sum of every premium collected, minus any loss (or plus any gain) from the stock movement.
+                            </div>
+                        </td>
+                        <td class="p-6 font-black text-blue-500 uppercase">Cycle Total</td>
+                        <td class="p-6"></td>
+                        <td class="p-6"></td>
+                        <td id="total_profit" class="p-6 text-right text-3xl font-mono font-black text-blue-500 tracking-tighter">$214.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="text-center text-slate-600 text-[10px] uppercase tracking-widest">
+            Press "Next Step" to follow the money.
+        </div>
+    </div>
+
+    <script>
+        let currentPhase = 1;
+
+        function syncAndCalc() {
+            const ps = parseFloat(document.getElementById('p_strike').value) || 0;
+            const pp = parseFloat(document.getElementById('p_prem').value) || 0;
+            const basis = ps - pp;
+            document.getElementById('c_strike').value = basis.toFixed(2);
+            calc();
+        }
+
+        function calc() {
+            const ps = parseFloat(document.getElementById('p_strike').value) || 0;
+            const pp = parseFloat(document.getElementById('p_prem').value) || 0;
+            const cs = parseFloat(document.getElementById('c_strike').value) || 0;
+            const cp = parseFloat(document.getElementById('c_prem').value) || 0;
+            const shares = 100;
+
+            const pImpact = pp * shares;
+            const cImpact = cp * shares;
+            const exitImpact = (cs - ps) * shares;
+            const totalNet = pImpact + cImpact + exitImpact;
+
+            document.getElementById('p_impact').innerText = `+$${pImpact.toFixed(2)}`;
+            document.getElementById('eff_basis').innerText = `$${(ps - pp).toFixed(2)}`;
+            document.getElementById('c_impact').innerText = `+$${cImpact.toFixed(2)}`;
+            document.getElementById('cap_gain_val').innerText = `${exitImpact >= 0 ? '+' : ''}$${exitImpact.toFixed(2)}`;
+            document.getElementById('cap_gain_val').className = `font-bold ${exitImpact >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            document.getElementById('exit_impact').innerText = `${exitImpact >= 0 ? '+' : ''}$${exitImpact.toFixed(2)}`;
+            document.getElementById('exit_impact').className = `p-6 text-right font-mono font-black ${exitImpact >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            document.getElementById('total_profit').innerText = `$${totalNet.toFixed(2)}`;
+        }
+
+        function nextPhase() {
+            currentPhase++;
+            if (currentPhase > 5) currentPhase = 1;
+            const rows = [1, 2, 3, 4, 5];
+            rows.forEach(r => document.getElementById(`row-${r}`).className = "border-b border-slate-800 dimmed");
+
+            const btn = document.getElementById('phase-btn');
+
+            // Activate current row and leave previous rows partially visible
+            for(let i=1; i<=currentPhase; i++) {
+                const row = document.getElementById(`row-${i}`);
+                row.classList.remove('dimmed');
+                if (i === currentPhase) row.classList.add('active-row');
+            }
+
+            btn.innerText = currentPhase === 5 ? "Reset Cycle" : "Next Step";
+        }
+
+        syncAndCalc();
+    </script>
+</body>
+</html>
