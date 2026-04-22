@@ -2,196 +2,201 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wheel Strategy: Interactive Tutorial</title>
+    <title>Wheel Simulator: Clean Path Logic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .active-row { border-left: 4px solid #60a5fa !important; background-color: rgba(30, 41, 59, 1) !important; position: relative; }
-        .dimmed { opacity: 0.2; filter: grayscale(1); pointer-events: none; }
+        .active-row { border-left: 4px solid #3b82f6 !important; background-color: rgba(30, 41, 59, 1) !important; position: relative; }
+        .dimmed { opacity: 0.1; filter: grayscale(1); pointer-events: none; }
+        /* New style for skipped/invalid rows */
+        .skipped-row { opacity: 0.05; pointer-events: none; text-decoration: line-through; }
         .ledger-input { background: #1e293b; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; font-family: monospace; width: 100px; color: white;}
-
-        /* Tooltip Styling */
         .tutorial-popup {
-            position: absolute;
-            left: -280px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 250px;
-            background: #3b82f6;
-            color: white;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-            z-index: 50;
-            display: none;
+            position: absolute; left: -280px; top: 50%; transform: translateY(-50%);
+            width: 250px; background: #3b82f6; color: white; padding: 12px; border-radius: 12px;
+            font-size: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4); z-index: 50; display: none;
         }
-        .tutorial-popup::after {
-            content: "";
-            position: absolute;
-            top: 50%;
-            right: -10px;
-            transform: translateY(-50%);
-            border-width: 5px;
-            border-style: solid;
-            border-color: transparent transparent transparent #3b82f6;
-        }
-        .active-row .tutorial-popup { display: block; animation: fadeIn 0.3s ease-out; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-50%) translateX(10px); } to { opacity: 1; transform: translateY(-50%) translateX(0); } }
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .active-row .tutorial-popup { display: block; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-8 font-sans flex flex-col items-center">
 
-    <div class="max-w-4xl w-full">
-        <header class="flex justify-between items-center mb-12 border-b border-slate-800 pb-6">
-            <div>
-                <h1 class="text-3xl font-black text-white uppercase tracking-tighter italic">Wheel <span class="text-blue-500">Coach</span></h1>
-                <p class="text-slate-500 text-sm">Step-by-step logic for the options wheel.</p>
-            </div>
-            <button onclick="nextPhase()" id="phase-btn" class="bg-blue-600 hover:bg-blue-500 px-8 py-3 rounded-xl font-black transition shadow-lg shadow-blue-900/40 uppercase text-xs tracking-widest">
-                ➜ Next Step
-            </button>
+    <div class="max-w-5xl w-full">
+        <header class="flex justify-between items-center mb-8 border-b border-slate-800 pb-6">
+            <h1 class="text-3xl font-black text-white uppercase italic">Wheel <span class="text-blue-500">Simulator</span></h1>
+            <button onclick="handleNext()" id="phase-btn" class="bg-blue-600 px-8 py-3 rounded-xl font-black uppercase text-xs">➜ Start Simulation</button>
         </header>
 
         <div class="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-visible shadow-2xl mb-8">
             <table class="w-full text-left">
                 <thead class="bg-slate-900 text-slate-500 text-[10px] uppercase font-bold tracking-widest">
-                    <tr>
-                        <th class="p-6">Phase</th>
-                        <th class="p-6">Action</th>
-                        <th class="p-6">Price Entry</th>
-                        <th class="p-6">Premium</th>
-                        <th class="p-6 text-right">Cash Flow</th>
-                    </tr>
+                    <tr><th class="p-6">Phase</th><th class="p-6">Action</th><th class="p-6">Inputs</th><th class="p-6 text-right">Cash Flow</th></tr>
                 </thead>
-                <tbody>
-                    <tr id="row-1" class="border-b border-slate-800 active-row">
-                        <td class="p-6 font-black text-xl text-slate-700">01
-                            <div class="tutorial-popup font-sans font-normal italic">
-                                <b>The Setup:</b> You're selling a Put. You are telling the market "I will buy this stock at $Strike if it falls." They pay you a "Premium" just for making that promise.
-                            </div>
-                        </td>
+                <tbody id="ledger-body">
+                    <tr id="row-1" class="border-b border-slate-800">
+                        <td class="p-6 font-black text-slate-700">01<div class="tutorial-popup">Entry phase: You keep this premium no matter what happens next.</div></td>
                         <td class="p-6 font-bold text-blue-400">Sell Put</td>
-                        <td class="p-6">
-                            <input type="number" id="p_strike" value="267.50" class="ledger-input font-bold" oninput="syncAndCalc()">
+                        <td class="p-6 flex gap-4">
+                            <div><label class="text-[9px] uppercase text-slate-500 block">Strike</label><input type="number" id="p_strike" value="267.50" class="ledger-input" oninput="syncAndCalc()"></div>
+                            <div><label class="text-[9px] uppercase text-slate-500 block">Premium</label><input type="number" id="p_prem" value="1.60" class="ledger-input text-green-400" oninput="syncAndCalc()"></div>
                         </td>
+                        <td id="p_impact" class="p-6 text-right font-mono text-green-400 font-black">+$160.00</td>
+                    </tr>
+
+                    <tr id="row-1-5" class="border-b border-slate-800 dimmed bg-slate-900/20">
+                        <td class="p-6 font-black text-slate-700">1.5<div class="tutorial-popup">If Price > Strike, you walk away with the cash and the simulator ends.</div></td>
+                        <td class="p-6 font-bold text-yellow-500 text-xs">PUT EXPIRATION</td>
                         <td class="p-6">
-                            <input type="number" id="p_prem" value="1.64" step="0.01" class="ledger-input text-green-400 font-bold" oninput="syncAndCalc()">
+                            <label class="text-[9px] uppercase text-slate-500 block">Price @ Expiry</label>
+                            <input type="number" id="p_expiry_price" value="267.50" class="ledger-input" oninput="calc()">
                         </td>
-                        <td id="p_impact" class="p-6 text-right font-mono text-green-400 font-black">+$164.00</td>
+                        <td id="p_status" class="p-6 text-right font-bold text-sm text-green-400">➔ EXPIRED WORTHLESS</td>
                     </tr>
 
                     <tr id="row-2" class="border-b border-slate-800 dimmed">
-                        <td class="p-6 font-black text-xl text-slate-700">02
-                            <div class="tutorial-popup font-sans font-normal italic">
-                                <b>The Trap:</b> The stock fell! You now own 100 shares. Your <b>Effective Basis</b> is the Strike minus the Premium you already kept. You aren't "losing" money, you're just holding an asset.
-                            </div>
-                        </td>
-                        <td class="p-6 font-bold text-orange-400 uppercase text-xs">Assigned</td>
-                        <td class="p-6 text-xs text-slate-400">Basis:<br><span id="eff_basis" class="text-white font-bold text-sm">$265.86</span></td>
-                        <td class="p-6"></td>
-                        <td class="p-6 text-right text-[10px] text-slate-500 font-black uppercase tracking-widest">Asset Acquired</td>
+                        <td class="p-6 font-black text-slate-700">02</td>
+                        <td class="p-6 font-bold text-orange-400 text-xs uppercase">Assigned</td>
+                        <td class="p-6 text-xs text-slate-400">Effective Basis:<br><span id="eff_basis" class="text-white font-bold text-sm">$0.00</span></td>
+                        <td id="assigned_label" class="p-6 text-right text-[10px] text-slate-500 font-black uppercase">Shares Acquired</td>
                     </tr>
 
                     <tr id="row-3" class="border-b border-slate-800 dimmed">
-                        <td class="p-6 font-black text-xl text-slate-700">03
-                            <div class="tutorial-popup font-sans font-normal italic">
-                                <b>Extraction:</b> Now you sell a "Covered Call." You are charging "rent" to hold the stock. By defaulting to your Basis, you ensure that if the stock is sold, you don't lose a cent of your original capital.
-                            </div>
+                        <td class="p-6 font-black text-slate-700">03</td>
+                        <td class="p-6 font-bold text-purple-400 text-xs uppercase">Sell Call</td>
+                        <td class="p-6 flex gap-4">
+                            <div><label class="text-[9px] uppercase text-slate-500 block">Strike</label><input type="number" id="c_strike" value="0" class="ledger-input" oninput="calc()"></div>
+                            <div><label class="text-[9px] uppercase text-slate-500 block">Premium</label><input type="number" id="c_prem" value="1.00" class="ledger-input text-green-400" oninput="calc()"></div>
                         </td>
-                        <td class="p-6 font-bold text-purple-400 uppercase text-xs tracking-tighter">Sell Call</td>
+                        <td id="c_impact" class="p-6 text-right font-mono text-green-400 font-black">+$0.00</td>
+                    </tr>
+
+                    <tr id="row-3-5" class="border-b border-slate-800 dimmed bg-slate-900/20">
+                        <td class="p-6 font-black text-slate-700">3.5</td>
+                        <td class="p-6 font-bold text-yellow-500 text-xs uppercase">Call Expiration</td>
                         <td class="p-6">
-                            <input type="number" id="c_strike" value="265.86" class="ledger-input font-bold" oninput="calc()">
+                            <label class="text-[9px] uppercase text-slate-500 block">Price @ Expiry</label>
+                            <input type="number" id="c_expiry_price" value="0" class="ledger-input" oninput="calc()">
                         </td>
-                        <td class="p-6">
-                            <input type="number" id="c_prem" value="0.50" step="0.01" class="ledger-input text-green-400 font-bold" oninput="calc()">
-                        </td>
-                        <td id="c_impact" class="p-6 text-right font-mono text-green-400 font-black">+$50.00</td>
+                        <td id="c_status" class="p-6 text-right font-bold text-sm text-slate-400">WAITING...</td>
                     </tr>
 
                     <tr id="row-4" class="border-b border-slate-800 dimmed">
-                        <td class="p-6 font-black text-xl text-slate-700">04
-                            <div class="tutorial-popup font-sans font-normal italic">
-                                <b>The Exit:</b> The stock was "Called Away." You sold it at your Call Strike. Because the Call Strike was lower than your original Put Strike, it shows as a "Loss" on the stock flip—but the premiums cover it.
-                            </div>
-                        </td>
-                        <td class="p-6 font-bold text-emerald-400 uppercase text-xs">Called Away</td>
-                        <td class="p-6 text-xs text-slate-400">Flip Result:<br><span id="cap_gain_val" class="font-bold">-$164.00</span></td>
-                        <td class="p-6"></td>
-                        <td id="exit_impact" class="p-6 text-right font-mono font-black text-red-400">-$164.00</td>
+                        <td class="p-6 font-black text-slate-700">04</td>
+                        <td class="p-6 font-bold text-emerald-400 text-xs uppercase">Called Away</td>
+                        <td class="p-6 text-xs text-slate-400">Stock Flip:<br><span id="cap_gain_val" class="font-bold">$0.00</span></td>
+                        <td id="exit_impact" class="p-6 text-right font-mono font-black">$0.00</td>
                     </tr>
 
                     <tr id="row-5" class="dimmed">
-                        <td class="p-6 font-black text-xl text-slate-700">05
-                            <div class="tutorial-popup font-sans font-normal italic">
-                                <b>The Result:</b> You finished the wheel! This number is your <b>Total Net Gain</b>. It is the sum of every premium collected, minus any loss (or plus any gain) from the stock movement.
-                            </div>
-                        </td>
+                        <td class="p-6 font-black text-slate-700">05</td>
                         <td class="p-6 font-black text-blue-500 uppercase">Cycle Total</td>
-                        <td class="p-6"></td>
-                        <td class="p-6"></td>
-                        <td id="total_profit" class="p-6 text-right text-3xl font-mono font-black text-blue-500 tracking-tighter">$214.00</td>
+                        <td class="p-6 text-[10px] text-slate-500 italic" id="path-desc">Path: Pending...</td>
+                        <td id="total_profit" class="p-6 text-right text-3xl font-mono font-black text-blue-500">$0.00</td>
                     </tr>
                 </tbody>
             </table>
         </div>
-
-        <div class="text-center text-slate-600 text-[10px] uppercase tracking-widest">
-            Press "Next Step" to follow the money.
-        </div>
     </div>
 
     <script>
-        let currentPhase = 1;
+        let currentStep = 0;
+        const allSteps = ["row-1", "row-1-5", "row-2", "row-3", "row-3-5", "row-4", "row-5"];
 
         function syncAndCalc() {
             const ps = parseFloat(document.getElementById('p_strike').value) || 0;
             const pp = parseFloat(document.getElementById('p_prem').value) || 0;
-            const basis = ps - pp;
-            document.getElementById('c_strike').value = basis.toFixed(2);
+            document.getElementById('c_strike').value = (ps - pp).toFixed(2);
             calc();
         }
 
         function calc() {
             const ps = parseFloat(document.getElementById('p_strike').value) || 0;
             const pp = parseFloat(document.getElementById('p_prem').value) || 0;
+            const pExp = parseFloat(document.getElementById('p_expiry_price').value) || 0;
             const cs = parseFloat(document.getElementById('c_strike').value) || 0;
             const cp = parseFloat(document.getElementById('c_prem').value) || 0;
-            const shares = 100;
+            const cExp = parseFloat(document.getElementById('c_expiry_price').value) || 0;
 
-            const pImpact = pp * shares;
-            const cImpact = cp * shares;
-            const exitImpact = (cs - ps) * shares;
-            const totalNet = pImpact + cImpact + exitImpact;
+            const isPutAssigned = pExp < ps;
+            const isCallAssigned = cExp > cs;
 
-            document.getElementById('p_impact').innerText = `+$${pImpact.toFixed(2)}`;
-            document.getElementById('eff_basis').innerText = `$${(ps - pp).toFixed(2)}`;
-            document.getElementById('c_impact').innerText = `+$${cImpact.toFixed(2)}`;
-            document.getElementById('cap_gain_val').innerText = `${exitImpact >= 0 ? '+' : ''}$${exitImpact.toFixed(2)}`;
-            document.getElementById('cap_gain_val').className = `font-bold ${exitImpact >= 0 ? 'text-green-400' : 'text-red-400'}`;
-            document.getElementById('exit_impact').innerText = `${exitImpact >= 0 ? '+' : ''}$${exitImpact.toFixed(2)}`;
-            document.getElementById('exit_impact').className = `p-6 text-right font-mono font-black ${exitImpact >= 0 ? 'text-green-400' : 'text-red-400'}`;
-            document.getElementById('total_profit').innerText = `$${totalNet.toFixed(2)}`;
+            // Step 1 values always exist
+            document.getElementById('p_impact').innerText = `+$${(pp * 100).toFixed(2)}`;
+            document.getElementById('p_status').innerText = isPutAssigned ? "➔ ASSIGNED" : "➔ EXPIRED WORTHLESS";
+            document.getElementById('p_status').className = `p-6 text-right font-bold text-sm ${isPutAssigned ? 'text-orange-400' : 'text-green-400'}`;
+
+            // Resetting stock-related rows if NOT assigned
+            if (!isPutAssigned) {
+                document.getElementById('eff_basis').innerText = "$0.00";
+                document.getElementById('assigned_label').innerText = "SKIP: NOT ASSIGNED";
+                document.getElementById('c_impact').innerText = "+$0.00";
+                document.getElementById('c_status').innerText = "SKIP: NO SHARES";
+                document.getElementById('cap_gain_val').innerText = "$0.00";
+                document.getElementById('exit_impact').innerText = "$0.00";
+                document.getElementById('path-desc').innerText = "Path: Premium Entry only";
+                document.getElementById('total_profit').innerText = `$${(pp * 100).toFixed(2)}`;
+                // Apply "skipped" visuals to those rows
+                ["row-2", "row-3", "row-3-5", "row-4"].forEach(id => document.getElementById(id).classList.add('skipped-row'));
+            } else {
+                // If Assigned, calculate normally
+                ["row-2", "row-3", "row-3-5", "row-4"].forEach(id => document.getElementById(id).classList.remove('skipped-row'));
+                document.getElementById('eff_basis').innerText = `$${(ps - pp).toFixed(2)}`;
+                document.getElementById('assigned_label').innerText = "SHARES ACQUIRED";
+                document.getElementById('c_impact').innerText = `+$${(cp * 100).toFixed(2)}`;
+                document.getElementById('c_status').innerText = isCallAssigned ? "➔ CALLED AWAY" : "➔ EXPIRED (KEEP SHARES)";
+                document.getElementById('c_status').className = `p-6 text-right font-bold text-sm ${isCallAssigned ? 'text-emerald-400' : 'text-purple-400'}`;
+
+                const exitGain = (cs - ps) * 100;
+                document.getElementById('cap_gain_val').innerText = `${exitGain >= 0 ? '+' : ''}$${exitGain.toFixed(2)}`;
+                document.getElementById('exit_impact').innerText = `${exitGain >= 0 ? '+' : ''}$${exitGain.toFixed(2)}`;
+                
+                let total = (pp * 100) + (cp * 100);
+                if (isCallAssigned) {
+                    total += exitGain;
+                    document.getElementById('path-desc').innerText = "Path: Assignment -> Exit";
+                } else {
+                    document.getElementById('path-desc').innerText = "Path: Assignment -> Holding";
+                }
+                document.getElementById('total_profit').innerText = `$${total.toFixed(2)}`;
+            }
         }
 
-        function nextPhase() {
-            currentPhase++;
-            if (currentPhase > 5) currentPhase = 1;
-            const rows = [1, 2, 3, 4, 5];
-            rows.forEach(r => document.getElementById(`row-${r}`).className = "border-b border-slate-800 dimmed");
+        function handleNext() {
+            const ps = parseFloat(document.getElementById('p_strike').value);
+            const pExp = parseFloat(document.getElementById('p_expiry_price').value);
+            const isPutAssigned = pExp < ps;
 
-            const btn = document.getElementById('phase-btn');
-
-            // Activate current row and leave previous rows partially visible
-            for(let i=1; i<=currentPhase; i++) {
-                const row = document.getElementById(`row-${i}`);
-                row.classList.remove('dimmed');
-                if (i === currentPhase) row.classList.add('active-row');
+            if (currentStep === 0) currentStep = 1;
+            else if (currentStep === 1) currentStep = 2;
+            else if (currentStep === 2) {
+                // Jump to end if Put Expired Worthless
+                currentStep = isPutAssigned ? 3 : 7; 
+            } else if (currentStep >= 3 && currentStep < 6) {
+                currentStep++;
+            } else {
+                currentStep = 0;
             }
+            updateUI();
+        }
 
-            btn.innerText = currentPhase === 5 ? "Reset Cycle" : "Next Step";
+        function updateUI() {
+            allSteps.forEach((id, idx) => {
+                const el = document.getElementById(id);
+                el.classList.add('dimmed');
+                el.classList.remove('active-row');
+                if ((idx + 1) <= currentStep && currentStep !== 0) el.classList.remove('dimmed');
+            });
+
+            if (currentStep >= 7 || (currentStep === 6)) {
+                document.getElementById('row-5').classList.remove('dimmed');
+                document.getElementById('row-5').classList.add('active-row');
+                document.getElementById('phase-btn').innerText = "↻ Reset Simulator";
+            } else if (currentStep > 0) {
+                document.getElementById(allSteps[currentStep - 1]).classList.add('active-row');
+                document.getElementById('phase-btn').innerText = "➜ Continue";
+            } else {
+                document.getElementById('phase-btn').innerText = "➜ Start Simulation";
+            }
+            calc();
         }
 
         syncAndCalc();
