@@ -5,11 +5,12 @@
     <title data-i18n="pageTitle">Wheel Simulator: Clean Path Logic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .active-row { border-left: 4px solid #3b82f6 !important; background-color: rgba(30, 41, 59, 1) !important; position: relative; }
+        .active-row { border-left: 4px solid #3b82f6 !important; background-color: rgba(30, 41, 59, 0.5) !important; position: relative; }
         .dimmed { opacity: 0.1; filter: grayscale(1); pointer-events: none; }
         /* New style for skipped/invalid rows */
         .skipped-row { opacity: 0.05; pointer-events: none; text-decoration: line-through; }
-        .ledger-input { background: #1e293b; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; font-family: monospace; width: 100px; color: white;}
+        .ledger-input { background: #1e293b; border: 1px solid #334155; border-radius: 4px; padding: 4px 6px; font-family: monospace; width: 100px; color: white; outline: none; transition: all 0.2s; }
+        .ledger-input:focus { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); border-color: #3b82f6; }
         .tutorial-popup {
             position: absolute; left: -280px; top: 50%; transform: translateY(-50%);
             width: 250px; background: #3b82f6; color: white; padding: 12px; border-radius: 12px;
@@ -36,8 +37,8 @@
                 </thead>
                 <tbody id="ledger-body">
                     <tr id="row-1" class="border-b border-slate-800">
-                        <td class="p-6 font-black text-slate-700">01<div class="tutorial-popup" data-i18n="tooltipEntry">Entry phase: You keep this premium no matter what happens next.</div></td>
-                        <td class="p-6 font-bold text-blue-400" data-i18n="sellPut">Sell Put</td>
+                        <td class="p-6 font-bold text-slate-500 text-[11px]">01<div class="tutorial-popup" data-i18n="tooltipEntry">Entry phase: You keep this premium no matter what happens next.</div></td>
+                        <td class="p-6 font-bold text-blue-400 text-[10px] uppercase tracking-widest" data-i18n="sellPut">Sell Put</td>
                         <td class="p-6 flex gap-4">
                             <div><label class="text-[9px] uppercase text-slate-500 block" data-i18n="strike">Strike</label><input type="number" id="p_strike" value="267.50" class="ledger-input" oninput="syncAndCalc()"></div>
                             <div><label class="text-[9px] uppercase text-slate-500 block" data-i18n="premium">Premium</label><input type="number" id="p_prem" value="1.60" class="ledger-input text-green-400" oninput="syncAndCalc()"></div>
@@ -46,8 +47,8 @@
                     </tr>
 
                     <tr id="row-1-5" class="border-b border-slate-800 dimmed bg-slate-900/20">
-                        <td class="p-6 font-black text-slate-700">1.5<div class="tutorial-popup" data-i18n="tooltipExpiry">If Price > Strike, you walk away with the cash and the simulator ends.</div></td>
-                        <td class="p-6 font-bold text-yellow-500 text-xs" data-i18n="putExpiration">PUT EXPIRATION</td>
+                        <td class="p-6 font-bold text-slate-500 text-[11px]">1.5<div class="tutorial-popup" data-i18n="tooltipExpiry">If Price > Strike, you walk away with the cash and the simulator ends.</div></td>
+                        <td class="p-6 font-bold text-yellow-500 text-[10px] uppercase tracking-widest" data-i18n="putExpiration">PUT EXPIRATION</td>
                         <td class="p-6">
                             <label class="text-[9px] uppercase text-slate-500 block" data-i18n="priceExpiry">Price @ Expiry</label>
                             <input type="number" id="p_expiry_price" value="267.50" class="ledger-input" oninput="calc()">
@@ -56,15 +57,15 @@
                     </tr>
 
                     <tr id="row-2" class="border-b border-slate-800 dimmed">
-                        <td class="p-6 font-black text-slate-700">02</td>
-                        <td class="p-6 font-bold text-orange-400 text-xs uppercase" data-i18n="assigned">Assigned</td>
+                        <td class="p-6 font-bold text-slate-500 text-[11px]">02</td>
+                        <td class="p-6 font-bold text-orange-400 text-[10px] uppercase tracking-widest" data-i18n="assigned">Assigned</td>
                         <td class="p-6 text-xs text-slate-400"><span data-i18n="effBasis">Effective Basis:</span><br><span id="eff_basis" class="text-white font-bold text-sm">$0.00</span></td>
                         <td id="assigned_label" class="p-6 text-right text-[10px] text-slate-500 font-black uppercase">Shares Acquired</td>
                     </tr>
 
                     <tr id="row-3" class="border-b border-slate-800 dimmed">
-                        <td class="p-6 font-black text-slate-700">03</td>
-                        <td class="p-6 font-bold text-purple-400 text-xs uppercase" data-i18n="sellCall">Sell Call</td>
+                        <td class="p-6 font-bold text-slate-500 text-[11px]">03</td>
+                        <td class="p-6 font-bold text-purple-400 text-[10px] uppercase tracking-widest" data-i18n="sellCall">Sell Call</td>
                         <td class="p-6 flex gap-4">
                             <div><label class="text-[9px] uppercase text-slate-500 block" data-i18n="strike">Strike</label><input type="number" id="c_strike" value="0" class="ledger-input" oninput="calc()"></div>
                             <div><label class="text-[9px] uppercase text-slate-500 block" data-i18n="premium">Premium</label><input type="number" id="c_prem" value="1.00" class="ledger-input text-green-400" oninput="calc()"></div>
@@ -73,8 +74,8 @@
                     </tr>
 
                     <tr id="row-3-5" class="border-b border-slate-800 dimmed bg-slate-900/20">
-                        <td class="p-6 font-black text-slate-700">3.5</td>
-                        <td class="p-6 font-bold text-yellow-500 text-xs uppercase" data-i18n="callExpiration">Call Expiration</td>
+                        <td class="p-6 font-bold text-slate-500 text-[11px]">3.5</td>
+                        <td class="p-6 font-bold text-yellow-500 text-[10px] uppercase tracking-widest" data-i18n="callExpiration">Call Expiration</td>
                         <td class="p-6">
                             <label class="text-[9px] uppercase text-slate-500 block" data-i18n="priceExpiry">Price @ Expiry</label>
                             <input type="number" id="c_expiry_price" value="0" class="ledger-input" oninput="calc()">
@@ -83,17 +84,17 @@
                     </tr>
 
                     <tr id="row-4" class="border-b border-slate-800 dimmed">
-                        <td class="p-6 font-black text-slate-700">04</td>
-                        <td class="p-6 font-bold text-emerald-400 text-xs uppercase" data-i18n="calledAway">Called Away</td>
+                        <td class="p-6 font-bold text-slate-500 text-[11px]">04</td>
+                        <td class="p-6 font-bold text-emerald-400 text-[10px] uppercase tracking-widest" data-i18n="calledAway">Called Away</td>
                         <td class="p-6 text-xs text-slate-400"><span data-i18n="stockFlip">Stock Flip:</span><br><span id="cap_gain_val" class="font-bold">$0.00</span></td>
                         <td id="exit_impact" class="p-6 text-right font-mono font-black">$0.00</td>
                     </tr>
 
                     <tr id="row-5" class="dimmed">
-                        <td class="p-6 font-black text-slate-700">05</td>
-                        <td class="p-6 font-black text-blue-500 uppercase" data-i18n="cycleTotal">Cycle Total</td>
+                        <td class="p-6 font-bold text-slate-500 text-[11px]">05</td>
+                        <td class="p-6 font-bold text-blue-500 text-[10px] uppercase tracking-widest" data-i18n="cycleTotal">Cycle Total</td>
                         <td class="p-6 text-[10px] text-slate-500 italic" id="path-desc">Path: Pending...</td>
-                        <td id="total_profit" class="p-6 text-right text-3xl font-mono font-black text-blue-500">$0.00</td>
+                        <td id="total_profit" class="p-6 text-right text-2xl font-mono font-bold text-blue-500 tracking-tight">$0.00</td>
                     </tr>
                 </tbody>
             </table>
@@ -117,15 +118,15 @@
                 strike: "Strike",
                 premium: "Premium",
                 priceExpiry: "Price @ Expiry",
-                sellPut: "Sell Put",
+                sellPut: "SELL PUT",
                 putExpiration: "PUT EXPIRATION",
-                assigned: "Assigned",
+                assigned: "ASSIGNED",
                 effBasis: "Effective Basis:",
-                sellCall: "Sell Call",
-                callExpiration: "Call Expiration",
-                calledAway: "Called Away",
+                sellCall: "SELL CALL",
+                callExpiration: "CALL EXPIRATION",
+                calledAway: "CALLED AWAY",
                 stockFlip: "Stock Flip:",
-                cycleTotal: "Cycle Total",
+                cycleTotal: "CYCLE TOTAL",
                 tooltipEntry: "Entry phase: You keep this premium no matter what happens next.",
                 tooltipExpiry: "If Price > Strike, you walk away with the cash and the simulator ends.",
                 // Dynamic
@@ -156,15 +157,15 @@
                 strike: "Kullanım Fiyatı",
                 premium: "Opsiyon Primi",
                 priceExpiry: "Vade Sonu Fiyatı",
-                sellPut: "Put Sat",
+                sellPut: "PUT SAT",
                 putExpiration: "PUT VADESİ",
-                assigned: "Atandı",
+                assigned: "ATANDI",
                 effBasis: "Maliyet Temeli:",
-                sellCall: "Call Sat",
-                callExpiration: "Call Vadesi",
-                calledAway: "Hisse Geri Alındı",
+                sellCall: "CALL SAT",
+                callExpiration: "CALL VADESİ",
+                calledAway: "HİSSE GERİ ALINDI",
                 stockFlip: "Hisse Kar/Zarar:",
-                cycleTotal: "Döngü Toplamı",
+                cycleTotal: "DÖNGÜ TOPLAMI",
                 tooltipEntry: "Giriş aşaması: Sonrasında ne olursa olsun bu primi alırsınız.",
                 tooltipExpiry: "Eğer Fiyat > Kullanım Fiyatı ise, nakit sizde kalır ve simülasyon biter.",
                 // Dinamik
