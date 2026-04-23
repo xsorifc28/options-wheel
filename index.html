@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Wheel Simulator: Clean Path Logic</title>
+    <title data-i18n="pageTitle">Wheel Simulator: Clean Path Logic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .active-row { border-left: 4px solid #3b82f6 !important; background-color: rgba(30, 41, 59, 1) !important; position: relative; }
@@ -22,31 +22,34 @@
 
     <div class="max-w-5xl w-full">
         <header class="flex justify-between items-center mb-8 border-b border-slate-800 pb-6">
-            <h1 class="text-3xl font-black text-white uppercase italic">Wheel <span class="text-blue-500">Simulator</span></h1>
-            <button onclick="handleNext()" id="phase-btn" class="bg-blue-600 px-8 py-3 rounded-xl font-black uppercase text-xs">➜ Start Simulation</button>
+            <h1 class="text-3xl font-black text-white uppercase italic"><span data-i18n="wheel">Wheel</span> <span class="text-blue-500" data-i18n="simulator">Simulator</span></h1>
+            <div class="flex items-center gap-4">
+                <button onclick="handleNext()" id="phase-btn" class="bg-blue-600 px-8 py-3 rounded-xl font-black uppercase text-xs">➜ Start Simulation</button>
+                <button onclick="toggleLang()" id="lang-btn" class="bg-slate-800 hover:bg-slate-700 px-4 py-3 rounded-xl font-black uppercase text-xs transition-colors">TR</button>
+            </div>
         </header>
 
         <div class="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-visible shadow-2xl mb-8">
             <table class="w-full text-left">
                 <thead class="bg-slate-900 text-slate-500 text-[10px] uppercase font-bold tracking-widest">
-                    <tr><th class="p-6">Phase</th><th class="p-6">Action</th><th class="p-6">Inputs</th><th class="p-6 text-right">Cash Flow</th></tr>
+                    <tr><th class="p-6" data-i18n="phase">Phase</th><th class="p-6" data-i18n="action">Action</th><th class="p-6" data-i18n="inputs">Inputs</th><th class="p-6 text-right" data-i18n="cashFlow">Cash Flow</th></tr>
                 </thead>
                 <tbody id="ledger-body">
                     <tr id="row-1" class="border-b border-slate-800">
-                        <td class="p-6 font-black text-slate-700">01<div class="tutorial-popup">Entry phase: You keep this premium no matter what happens next.</div></td>
-                        <td class="p-6 font-bold text-blue-400">Sell Put</td>
+                        <td class="p-6 font-black text-slate-700">01<div class="tutorial-popup" data-i18n="tooltipEntry">Entry phase: You keep this premium no matter what happens next.</div></td>
+                        <td class="p-6 font-bold text-blue-400" data-i18n="sellPut">Sell Put</td>
                         <td class="p-6 flex gap-4">
-                            <div><label class="text-[9px] uppercase text-slate-500 block">Strike</label><input type="number" id="p_strike" value="267.50" class="ledger-input" oninput="syncAndCalc()"></div>
-                            <div><label class="text-[9px] uppercase text-slate-500 block">Premium</label><input type="number" id="p_prem" value="1.60" class="ledger-input text-green-400" oninput="syncAndCalc()"></div>
+                            <div><label class="text-[9px] uppercase text-slate-500 block" data-i18n="strike">Strike</label><input type="number" id="p_strike" value="267.50" class="ledger-input" oninput="syncAndCalc()"></div>
+                            <div><label class="text-[9px] uppercase text-slate-500 block" data-i18n="premium">Premium</label><input type="number" id="p_prem" value="1.60" class="ledger-input text-green-400" oninput="syncAndCalc()"></div>
                         </td>
                         <td id="p_impact" class="p-6 text-right font-mono text-green-400 font-black">+$160.00</td>
                     </tr>
 
                     <tr id="row-1-5" class="border-b border-slate-800 dimmed bg-slate-900/20">
-                        <td class="p-6 font-black text-slate-700">1.5<div class="tutorial-popup">If Price > Strike, you walk away with the cash and the simulator ends.</div></td>
-                        <td class="p-6 font-bold text-yellow-500 text-xs">PUT EXPIRATION</td>
+                        <td class="p-6 font-black text-slate-700">1.5<div class="tutorial-popup" data-i18n="tooltipExpiry">If Price > Strike, you walk away with the cash and the simulator ends.</div></td>
+                        <td class="p-6 font-bold text-yellow-500 text-xs" data-i18n="putExpiration">PUT EXPIRATION</td>
                         <td class="p-6">
-                            <label class="text-[9px] uppercase text-slate-500 block">Price @ Expiry</label>
+                            <label class="text-[9px] uppercase text-slate-500 block" data-i18n="priceExpiry">Price @ Expiry</label>
                             <input type="number" id="p_expiry_price" value="267.50" class="ledger-input" oninput="calc()">
                         </td>
                         <td id="p_status" class="p-6 text-right font-bold text-sm text-green-400">➔ EXPIRED WORTHLESS</td>
@@ -54,26 +57,26 @@
 
                     <tr id="row-2" class="border-b border-slate-800 dimmed">
                         <td class="p-6 font-black text-slate-700">02</td>
-                        <td class="p-6 font-bold text-orange-400 text-xs uppercase">Assigned</td>
-                        <td class="p-6 text-xs text-slate-400">Effective Basis:<br><span id="eff_basis" class="text-white font-bold text-sm">$0.00</span></td>
+                        <td class="p-6 font-bold text-orange-400 text-xs uppercase" data-i18n="assigned">Assigned</td>
+                        <td class="p-6 text-xs text-slate-400"><span data-i18n="effBasis">Effective Basis:</span><br><span id="eff_basis" class="text-white font-bold text-sm">$0.00</span></td>
                         <td id="assigned_label" class="p-6 text-right text-[10px] text-slate-500 font-black uppercase">Shares Acquired</td>
                     </tr>
 
                     <tr id="row-3" class="border-b border-slate-800 dimmed">
                         <td class="p-6 font-black text-slate-700">03</td>
-                        <td class="p-6 font-bold text-purple-400 text-xs uppercase">Sell Call</td>
+                        <td class="p-6 font-bold text-purple-400 text-xs uppercase" data-i18n="sellCall">Sell Call</td>
                         <td class="p-6 flex gap-4">
-                            <div><label class="text-[9px] uppercase text-slate-500 block">Strike</label><input type="number" id="c_strike" value="0" class="ledger-input" oninput="calc()"></div>
-                            <div><label class="text-[9px] uppercase text-slate-500 block">Premium</label><input type="number" id="c_prem" value="1.00" class="ledger-input text-green-400" oninput="calc()"></div>
+                            <div><label class="text-[9px] uppercase text-slate-500 block" data-i18n="strike">Strike</label><input type="number" id="c_strike" value="0" class="ledger-input" oninput="calc()"></div>
+                            <div><label class="text-[9px] uppercase text-slate-500 block" data-i18n="premium">Premium</label><input type="number" id="c_prem" value="1.00" class="ledger-input text-green-400" oninput="calc()"></div>
                         </td>
                         <td id="c_impact" class="p-6 text-right font-mono text-green-400 font-black">+$0.00</td>
                     </tr>
 
                     <tr id="row-3-5" class="border-b border-slate-800 dimmed bg-slate-900/20">
                         <td class="p-6 font-black text-slate-700">3.5</td>
-                        <td class="p-6 font-bold text-yellow-500 text-xs uppercase">Call Expiration</td>
+                        <td class="p-6 font-bold text-yellow-500 text-xs uppercase" data-i18n="callExpiration">Call Expiration</td>
                         <td class="p-6">
-                            <label class="text-[9px] uppercase text-slate-500 block">Price @ Expiry</label>
+                            <label class="text-[9px] uppercase text-slate-500 block" data-i18n="priceExpiry">Price @ Expiry</label>
                             <input type="number" id="c_expiry_price" value="0" class="ledger-input" oninput="calc()">
                         </td>
                         <td id="c_status" class="p-6 text-right font-bold text-sm text-slate-400">WAITING...</td>
@@ -81,14 +84,14 @@
 
                     <tr id="row-4" class="border-b border-slate-800 dimmed">
                         <td class="p-6 font-black text-slate-700">04</td>
-                        <td class="p-6 font-bold text-emerald-400 text-xs uppercase">Called Away</td>
-                        <td class="p-6 text-xs text-slate-400">Stock Flip:<br><span id="cap_gain_val" class="font-bold">$0.00</span></td>
+                        <td class="p-6 font-bold text-emerald-400 text-xs uppercase" data-i18n="calledAway">Called Away</td>
+                        <td class="p-6 text-xs text-slate-400"><span data-i18n="stockFlip">Stock Flip:</span><br><span id="cap_gain_val" class="font-bold">$0.00</span></td>
                         <td id="exit_impact" class="p-6 text-right font-mono font-black">$0.00</td>
                     </tr>
 
                     <tr id="row-5" class="dimmed">
                         <td class="p-6 font-black text-slate-700">05</td>
-                        <td class="p-6 font-black text-blue-500 uppercase">Cycle Total</td>
+                        <td class="p-6 font-black text-blue-500 uppercase" data-i18n="cycleTotal">Cycle Total</td>
                         <td class="p-6 text-[10px] text-slate-500 italic" id="path-desc">Path: Pending...</td>
                         <td id="total_profit" class="p-6 text-right text-3xl font-mono font-black text-blue-500">$0.00</td>
                     </tr>
@@ -100,6 +103,106 @@
     <script>
         let currentStep = 0;
         const allSteps = ["row-1", "row-1-5", "row-2", "row-3", "row-3-5", "row-4", "row-5"];
+        let currentLang = 'en';
+
+        const translations = {
+            en: {
+                pageTitle: "Wheel Simulator: Clean Path Logic",
+                wheel: "Wheel",
+                simulator: "Simulator",
+                phase: "Phase",
+                action: "Action",
+                inputs: "Inputs",
+                cashFlow: "Cash Flow",
+                strike: "Strike",
+                premium: "Premium",
+                priceExpiry: "Price @ Expiry",
+                sellPut: "Sell Put",
+                putExpiration: "PUT EXPIRATION",
+                assigned: "Assigned",
+                effBasis: "Effective Basis:",
+                sellCall: "Sell Call",
+                callExpiration: "Call Expiration",
+                calledAway: "Called Away",
+                stockFlip: "Stock Flip:",
+                cycleTotal: "Cycle Total",
+                tooltipEntry: "Entry phase: You keep this premium no matter what happens next.",
+                tooltipExpiry: "If Price > Strike, you walk away with the cash and the simulator ends.",
+                // Dynamic
+                startSim: "➜ Start Simulation",
+                continue: "➜ Continue",
+                resetSim: "↻ Reset Simulator",
+                statusAssigned: "➔ ASSIGNED",
+                statusExpiredWorthless: "➔ EXPIRED WORTHLESS",
+                skipNotAssigned: "SKIP: NOT ASSIGNED",
+                sharesAcquired: "SHARES ACQUIRED",
+                waiting: "WAITING...",
+                statusCalledAway: "➔ CALLED AWAY",
+                statusExpiredKeep: "➔ EXPIRED (KEEP SHARES)",
+                skipNoShares: "SKIP: NO SHARES",
+                pathPending: "Path: Pending...",
+                pathEntryOnly: "Path: Premium Entry only",
+                pathAssignedExit: "Path: Assignment -> Exit",
+                pathAssignedHolding: "Path: Assignment -> Holding"
+            },
+            tr: {
+                pageTitle: "Wheel Simülatörü: Net Yol Mantığı",
+                wheel: "Wheel",
+                simulator: "Simülatörü",
+                phase: "Aşama",
+                action: "İşlem",
+                inputs: "Girdiler",
+                cashFlow: "Nakit Akışı",
+                strike: "Kullanım Fiyatı",
+                premium: "Opsiyon Primi",
+                priceExpiry: "Vade Sonu Fiyatı",
+                sellPut: "Put Sat",
+                putExpiration: "PUT VADESİ",
+                assigned: "Atandı",
+                effBasis: "Maliyet Temeli:",
+                sellCall: "Call Sat",
+                callExpiration: "Call Vadesi",
+                calledAway: "Hisse Geri Alındı",
+                stockFlip: "Hisse Kar/Zarar:",
+                cycleTotal: "Döngü Toplamı",
+                tooltipEntry: "Giriş aşaması: Sonrasında ne olursa olsun bu primi alırsınız.",
+                tooltipExpiry: "Eğer Fiyat > Kullanım Fiyatı ise, nakit sizde kalır ve simülasyon biter.",
+                // Dinamik
+                startSim: "➜ Simülasyonu Başlat",
+                continue: "➜ Devam Et",
+                resetSim: "↻ Simülatörü Sıfırla",
+                statusAssigned: "➔ ATANDI",
+                statusExpiredWorthless: "➔ DEĞERSİZ VADE SONU",
+                skipNotAssigned: "ATLA: ATANMADI",
+                sharesAcquired: "HİSSELER ALINDI",
+                waiting: "BEKLİYOR...",
+                statusCalledAway: "➔ HİSSELER SATILDI",
+                statusExpiredKeep: "➔ VADE SONU (HİSSEYİ TUT)",
+                skipNoShares: "ATLA: HİSSE YOK",
+                pathPending: "Yol: Bekliyor...",
+                pathEntryOnly: "Yol: Sadece Prim Girişi",
+                pathAssignedExit: "Yol: Atanma -> Çıkış",
+                pathAssignedHolding: "Yol: Atanma -> Elde Tutma"
+            }
+        };
+
+        function t(key) {
+            return translations[currentLang][key] || key;
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'en' ? 'tr' : 'en';
+            applyTranslations();
+        }
+
+        function applyTranslations() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.innerText = t(key);
+            });
+            document.getElementById('lang-btn').innerText = currentLang === 'en' ? 'TR' : 'EN';
+            updateUI();
+        }
 
         function syncAndCalc() {
             const ps = parseFloat(document.getElementById('p_strike').value) || 0;
@@ -121,18 +224,18 @@
 
             // Step 1 values always exist
             document.getElementById('p_impact').innerText = `+$${(pp * 100).toFixed(2)}`;
-            document.getElementById('p_status').innerText = isPutAssigned ? "➔ ASSIGNED" : "➔ EXPIRED WORTHLESS";
+            document.getElementById('p_status').innerText = isPutAssigned ? t('statusAssigned') : t('statusExpiredWorthless');
             document.getElementById('p_status').className = `p-6 text-right font-bold text-sm ${isPutAssigned ? 'text-orange-400' : 'text-green-400'}`;
 
             // Resetting stock-related rows if NOT assigned
             if (!isPutAssigned) {
                 document.getElementById('eff_basis').innerText = "$0.00";
-                document.getElementById('assigned_label').innerText = "SKIP: NOT ASSIGNED";
+                document.getElementById('assigned_label').innerText = t('skipNotAssigned');
                 document.getElementById('c_impact').innerText = "+$0.00";
-                document.getElementById('c_status').innerText = "SKIP: NO SHARES";
+                document.getElementById('c_status').innerText = t('skipNoShares');
                 document.getElementById('cap_gain_val').innerText = "$0.00";
                 document.getElementById('exit_impact').innerText = "$0.00";
-                document.getElementById('path-desc').innerText = "Path: Premium Entry only";
+                document.getElementById('path-desc').innerText = t('pathEntryOnly');
                 document.getElementById('total_profit').innerText = `$${(pp * 100).toFixed(2)}`;
                 // Apply "skipped" visuals to those rows
                 ["row-2", "row-3", "row-3-5", "row-4"].forEach(id => document.getElementById(id).classList.add('skipped-row'));
@@ -140,9 +243,9 @@
                 // If Assigned, calculate normally
                 ["row-2", "row-3", "row-3-5", "row-4"].forEach(id => document.getElementById(id).classList.remove('skipped-row'));
                 document.getElementById('eff_basis').innerText = `$${(ps - pp).toFixed(2)}`;
-                document.getElementById('assigned_label').innerText = "SHARES ACQUIRED";
+                document.getElementById('assigned_label').innerText = t('sharesAcquired');
                 document.getElementById('c_impact').innerText = `+$${(cp * 100).toFixed(2)}`;
-                document.getElementById('c_status').innerText = isCallAssigned ? "➔ CALLED AWAY" : "➔ EXPIRED (KEEP SHARES)";
+                document.getElementById('c_status').innerText = isCallAssigned ? t('statusCalledAway') : t('statusExpiredKeep');
                 document.getElementById('c_status').className = `p-6 text-right font-bold text-sm ${isCallAssigned ? 'text-emerald-400' : 'text-purple-400'}`;
 
                 const exitGain = (cs - ps) * 100;
@@ -152,9 +255,9 @@
                 let total = (pp * 100) + (cp * 100);
                 if (isCallAssigned) {
                     total += exitGain;
-                    document.getElementById('path-desc').innerText = "Path: Assignment -> Exit";
+                    document.getElementById('path-desc').innerText = t('pathAssignedExit');
                 } else {
-                    document.getElementById('path-desc').innerText = "Path: Assignment -> Holding";
+                    document.getElementById('path-desc').innerText = t('pathAssignedHolding');
                 }
                 document.getElementById('total_profit').innerText = `$${total.toFixed(2)}`;
             }
@@ -189,12 +292,12 @@
             if (currentStep >= 7 || (currentStep === 6)) {
                 document.getElementById('row-5').classList.remove('dimmed');
                 document.getElementById('row-5').classList.add('active-row');
-                document.getElementById('phase-btn').innerText = "↻ Reset Simulator";
+                document.getElementById('phase-btn').innerText = t('resetSim');
             } else if (currentStep > 0) {
                 document.getElementById(allSteps[currentStep - 1]).classList.add('active-row');
-                document.getElementById('phase-btn').innerText = "➜ Continue";
+                document.getElementById('phase-btn').innerText = t('continue');
             } else {
-                document.getElementById('phase-btn').innerText = "➜ Start Simulation";
+                document.getElementById('phase-btn').innerText = t('startSim');
             }
             calc();
         }
